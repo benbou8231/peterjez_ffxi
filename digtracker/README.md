@@ -15,7 +15,6 @@ A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, s
 ## Installation
 
 1. Download or clone this repository into your Windower `addons` folder:
-   ```text
    Windower4/addons/DigTracker/
 
 3. Ensure the main file is named DigTracker.lua.
@@ -35,4 +34,4 @@ All commands can be run using //dt or //digtracker.
 
 ## File Structure
 data/<CharacterName>.lua: Persistent data store containing total digs, item counts, skill-up history, and current interval progress.
-logs/dig_history.csv: Exported log history with timestamps, dig results, items obtained, and skill levels.* **`logs/dig_history.csv`** — Log of every single dig event with timestamps.
+logs/dig_history.csv: Exported log history with timestamps, dig results, items obtained, and skill levels.
