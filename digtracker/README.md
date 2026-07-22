@@ -25,13 +25,13 @@ A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, s
 ## Commands
 All commands can be run using //dt or //digtracker.
 
-//dt toggle	Shows or hides the HUD overlay.
-//dt items	Toggles the list of looted items on the HUD.
-//dt lock	Locks/unlocks HUD mouse dragging.
-//dt reset session	Resets current session counters, timer, and speed stats.
-//dt reset persistent	Clears stored lifetime items, skill intervals, and dig counts.
-//dt reset all	Erases both session data and lifetime character records.
+//dt toggle	Shows or hides the HUD overlay.<br>
+//dt items	Toggles the list of looted items on the HUD.<br>
+//dt lock	Locks/unlocks HUD mouse dragging.<br>
+//dt reset session	Resets current session counters, timer, and speed stats.<br>
+//dt reset persistent	Clears stored lifetime items, skill intervals, and dig counts.<br>
+//dt reset all	Erases both session data and lifetime character records.<br>
 
 ## File Structure
-data/<CharacterName>.lua: Persistent data store containing total digs, item counts, skill-up history, and current interval progress.
+data/<CharacterName>.lua: Persistent data store containing total digs, item counts, skill-up history, and current interval progress.<br>
 logs/dig_history.csv: Exported log history with timestamps, dig results, items obtained, and skill levels.
