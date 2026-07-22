@@ -15,13 +15,11 @@ A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, s
 ## Installation
 
 1. Download or clone this repository into your Windower `addons` folder:
-   ```text
    Windower4/addons/DigTracker/
 
 2. Ensure the main file is named DigTracker.lua.
 
 3. In-game, load the addon using console:
-  ```text
   //lua load digtracker
 
 ## Commands
