@@ -1,55 +1,39 @@
-# DigTracker
+# DigTracker (v3.2)
 
-A lightweight, robust Windower 4 addon for *Final Fantasy XI* that tracks your Chocobo Digging sessions, persistent historic stats, and calculates your wing skill-up intervals.
-
-This addon uses a custom flat-file Lua database to store items and stats, completely bypassing the buggy XML formatting limitations of the Windower configuration library (meaning no corrupted setting files or HUD crashes!).
+A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, session speeds, item yields, and persistent skill-up intervals across multiple characters.
 
 ---
 
 ## Features
 
-* **Session & Lifetime Tracking:** Tracks successful digs, failed digs, total digs, and conquest points earned from beastman resources.
-* **Speed & Rate Math:** Calculates your success rates, digs-per-hour, and items-per-hour in real-time.
-* **Smart Wing Skill-Up Tracking:** 
-  * Records your exact skill level and the number of digs between each skill-up.
-  * Calculates your running average, best, and worst intervals.
-  * Displays a status indicator (`Below Avg` or `DUE`) based on your current luck.
-* **Interactive HUD:** Easily reposition the display anywhere on your screen using your mouse.
-* **Safe Flat-File Storage:** Saves your precious historical data to a clean, readable Lua file (`data/stats.lua`) that preserves item names with special characters or spaces.
-* **CSV Logging:** Automatically logs every dig outcome to `logs/dig_history.csv` for personal analysis or spreadsheet export.
-
----
+* **Multi-Character Support**: Saves historical stats per character into `data/<CharacterName>.lua`.
+* **Persistent Skill Intervals**: Tracks `Digs Since Last Skill` across logouts and sessions so you never lose your current streak.
+* **Live Speed Metrics**: Monitors total session digs, success/failure ratios, and hourly rates (`digs/hr` and `items/hr`).
+* **Interval Statistics**: Calculates your average, best, and worst dig intervals between skill-ups, with a dynamic status indicator (`DUE` / `Below Avg`).
+* **CSV Logging**: Automatically appends dig records to `logs/dig_history.csv` for detailed auditing.
 
 ## Installation
 
-1. Click the green **Code** button on GitHub and select **Download ZIP** (or clone this repository).
-2. Extract the folder to your Windower installation path:
-   `Windower4/addons/`
-3. Ensure the folder is named exactly `DigTracker` (and contains `DigTracker.lua`).
-4. Load the addon in-game by typing:
-   `//lua load digtracker`
-   *(To load it automatically on login, add `lua load digtracker` to your Windower `scripts/init.txt` file).*
+1. Download or clone this repository into your Windower `addons` folder:
+   ```text
+   Windower4/addons/DigTracker/
 
----
+2. Ensure the main file is named DigTracker.lua.
+
+3. In-game, load the addon using console:
+  ```text
+  //lua load digtracker
 
 ## Commands
+All commands can be run using //dt or //digtracker.
 
-Use either `//dt` or `//digtracker` followed by these subcommands:
-
-* `//dt toggle`            - Shows or hides the HUD overlay.
-* `//dt items`             - Toggles the session item list on the HUD display.
-* `//dt lock`              - Locks or unlocks HUD dragging.
-* `//dt reset session`     - Clears current session timers and counts.
-* `//dt reset persistent`  - Erases your lifetime stats, items list, and skill intervals.
-* `//dt reset all`         - Performs a total wipe of both session and lifetime data.
-
----
+//dt toggle	Shows or hides the HUD overlay.
+//dt items	Toggles the list of looted items on the HUD.
+//dt lock	Locks/unlocks HUD mouse dragging.
+//dt reset session	Resets current session counters, timer, and speed stats.
+//dt reset persistent	Clears stored lifetime items, skill intervals, and dig counts.
+//dt reset all	Erases both session data and lifetime character records.
 
 ## File Structure
-
-Once loaded, the addon will generate the following files inside your `addons/DigTracker/` folder:
-
-* **`DigTracker.lua`** — The main addon script.
-* **`data/settings.xml`** — Stores basic display settings (HUD coordinates, locked state, visibility).
-* **`data/stats.lua`** — Stores your lifetime digging statistics and item lists. *Backup this file if you move PCs!*
-* **`logs/dig_history.csv`** — Log of every single dig event with timestamps.
+data/<CharacterName>.lua: Persistent data store containing total digs, item counts, skill-up history, and current interval progress.
+logs/dig_history.csv: Exported log history with timestamps, dig results, items obtained, and skill levels.* **`logs/dig_history.csv`** — Log of every single dig event with timestamps.
