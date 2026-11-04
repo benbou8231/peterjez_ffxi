@@ -9,6 +9,18 @@ features, MAJOR for breaking changes.
 
 Original project: [peterjez/ffxi](https://github.com/peterjez/ffxi)
 
+## [3.4.0] Improve skill-up interval statistics
+
+### Changed
+
+- Replace lifetime average and Best/Worst statistics with a rolling average of the last five completed skill-up intervals and the last three intervals (oldest to newest).
+- Replace DUE/Below Avg status with the number of digs above or below the rounded rolling average.
+- Add fork maintainer attribution to the addon metadata while preserving original author credit.
+
+### Compatibility
+
+- Preserve existing character data and persistent skill-up history without migration.
+
 ## [3.3.1] Sort looted items alphabetically
 
 ### Fixed
