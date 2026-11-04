@@ -1,4 +1,4 @@
-# DigTracker (v3.2)
+# DigTracker (v3.3.1)
 
 A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, session speeds, item yields, and persistent skill-up intervals across multiple characters.
 
@@ -12,15 +12,26 @@ A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, s
 * **Interval Statistics**: Calculates your average, best, and worst dig intervals between skill-ups, with a dynamic status indicator (`DUE` / `Below Avg`).
 * **CSV Logging**: Automatically appends dig records to `logs/dig_history.csv` for detailed auditing.
 
+## Fork Improvements
+
+This fork extends the original DigTracker by [peterjez](https://github.com/peterjez/ffxi/tree/main/digtracker) with:
+
+- **Chocobo-only tracking:** Only processes dig-result messages while riding a chocobo, reducing false counts.
+- **Regional currency tracking:** Separately tracks Conquest Points, Imperial Standing, Allied Notes, and Bayld.
+- **Alphabetical loot ordering:** Consistent item ordering in the HUD and saved records.
+
+See the [Changelog](CHANGELOG.md) for the complete version history.
+
 ## Installation
 
-1. Download or clone this repository into your Windower `addons` folder:
-   Windower4/addons/DigTracker/
+1. Download the repository and copy its `digtracker` folder into your Windower addons directory:
+   `Windower4/addons/digtracker/`
 
-3. Ensure the main file is named DigTracker.lua.
+2. Ensure the addon file is located at:
+   `Windower4/addons/digtracker/digtracker.lua`
 
-4. In-game, load the addon using console:
-  //lua load digtracker
+3. Load the addon in-game using:
+   `//lua load digtracker`
 
 ## Commands
 All commands can be run using //dt or //digtracker.
