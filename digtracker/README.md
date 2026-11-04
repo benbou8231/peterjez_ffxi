@@ -25,12 +25,15 @@ See the [Changelog](CHANGELOG.md) for the complete version history.
 ## Installation
 
 1. Download the repository and copy its `digtracker` folder into your Windower addons directory:
+   
    `Windower4/addons/digtracker/`
 
 2. Ensure the addon file is located at:
+   
    `Windower4/addons/digtracker/digtracker.lua`
 
 3. In-game, load the addon using console:
+   
    `//lua load digtracker`
 
 ## Commands
