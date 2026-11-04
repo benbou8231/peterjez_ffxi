@@ -216,7 +216,7 @@ local function get_rates()
     local indicator = "---"
     local current = persistent_stats.digs_since_skillup or 0
 
-    if avg_interval > 0 and current > 0 then
+    if avg_interval > 0 then
         -- Dig attempts are whole numbers
         local rounded_avg = math.floor(avg_interval + 0.5)
         local difference = current - rounded_avg
