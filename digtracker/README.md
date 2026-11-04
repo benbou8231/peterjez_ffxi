@@ -30,7 +30,7 @@ See the [Changelog](CHANGELOG.md) for the complete version history.
 2. Ensure the addon file is located at:
    `Windower4/addons/digtracker/digtracker.lua`
 
-3. Load the addon in-game using:
+3. In-game, load the addon using console:
    `//lua load digtracker`
 
 ## Commands
