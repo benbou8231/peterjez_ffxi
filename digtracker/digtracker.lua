@@ -1,6 +1,6 @@
 _addon.name     = 'DigTracker'
 _addon.author   = 'peterjez'
-_addon.version  = '3.3.0'
+_addon.version  = '3.3.1'
 _addon.commands = {'dt', 'digtracker'}
 
 -- Load Windower Libraries
@@ -37,7 +37,7 @@ end
 local stats_file_path = ('data/%s.lua'):format(character)
 local stats_file = files.new(stats_file_path)
 
--- Supported digging currencies, in stable HUD and save-file order.
+-- Supported digging currencies, in stable HUD and save-file order
 local currency_order = {
     'Conquest Points',
     'Imperial Standing',
@@ -63,7 +63,7 @@ local persistent_stats = {
     skillups = {}
 }
 
--- Preserve lifetime CP from character files saved before regional currencies.
+-- Preserve lifetime CP from character files saved before regional currencies
 local function migrate_stats()
     if not persistent_stats.digs_since_skillup then
         persistent_stats.digs_since_skillup = 0
@@ -124,6 +124,16 @@ local function clean_string(str)
     return cleaned:trim()
 end
 
+-- Return item names in stable alphabetical order for display and saving
+local function sorted_item_names(items)
+    local names = {}
+    for item in pairs(items) do
+        names[#names+1] = item
+    end
+    table.sort(names)
+    return names
+end
+
 -- Safely serializes our custom table into a pure, clean Lua data file
 local function save_data()
     -- Save XML Settings
@@ -150,7 +160,8 @@ local function save_data()
 
     -- Write items
     output[#output+1] = "    items = {"
-    for item, count in pairs(persistent_stats.items) do
+    for _, item in ipairs(sorted_item_names(persistent_stats.items)) do
+        local count = persistent_stats.items[item]
         -- Escape any single quotes safely
         local safe_item = item:gsub("'", "\\'")
         output[#output+1] = string.format("        ['%s'] = %d,", safe_item, count)
@@ -247,7 +258,8 @@ local function update_hud()
         info[#info+1] = "--------------------------"
         info[#info+1] = "\\cs(255,255,100)Items Looted (Session):\\cr"
         local has_items = false
-        for item, count in pairs(session.items) do
+        for _, item in ipairs(sorted_item_names(session.items)) do
+            local count = session.items[item]
             info[#info+1] = string.format("  %s: %d", item, count)
             has_items = true
         end
@@ -325,7 +337,7 @@ windower.register_event('incoming text', function(original, modified, mode, rest
         session.regional_currencies[currency] = (session.regional_currencies[currency] or 0) + value
         persistent_stats.regional_currencies[currency] = (persistent_stats.regional_currencies[currency] or 0) + value
 
-        -- Retain the original CP item key for compatibility with old totals.
+        -- Retain the original CP item key for compatibility with old totals
         local short_name = currency == 'Conquest Points' and 'CP' or currency
         local item_label = is_bayld and 'Bayld Reward' or ('Beastman Cache (' .. short_name .. ')')
         session.items[item_label] = (session.items[item_label] or 0) + 1
