@@ -1,6 +1,6 @@
 _addon.name     = 'DigTracker'
-_addon.author   = 'peterjez'
-_addon.version  = '3.3.1'
+_addon.author   = 'peterjez, benbou8231'
+_addon.version  = '3.4.0'
 _addon.commands = {'dt', 'digtracker'}
 
 -- Load Windower Libraries
@@ -190,41 +190,47 @@ local function get_rates()
 
     -- Decode our flat string list back into math values
     local skill_count = #persistent_stats.skillups
+    local recent_intervals = {}
+
+    for i = math.max(2, skill_count - 4), skill_count do
+        local parts = persistent_stats.skillups[i]:split('|')
+        recent_intervals[#recent_intervals + 1] = tonumber(parts[2]) or 0
+    end
+
     local avg_interval = 0
-    local best_interval = "N/A"
-    local worst_interval = "N/A"
+    local last_intervals = {'N/A', 'N/A', 'N/A'}
 
-    if skill_count > 1 then
-        local total_intervals = 0
-        local min_int = 999999
-        local max_int = 0
+    if #recent_intervals > 0 then
+        local total = 0
+        for i, interval in ipairs(recent_intervals) do
+            total = total + interval
 
-        for i = 2, skill_count do
-            -- Decode "skill|interval|timestamp" format
-            local parts = persistent_stats.skillups[i]:split('|')
-            local interval = tonumber(parts[2]) or 0
-
-            total_intervals = total_intervals + interval
-            if interval < min_int then min_int = interval end
-            if interval > max_int then max_int = interval end
+            -- Oldest on the left, newest on the right
+            if i > #recent_intervals - 3 then
+                last_intervals[i - #recent_intervals + 3] = tostring(interval)
+            end
         end
-
-        avg_interval = total_intervals / (skill_count - 1)
-        best_interval = tostring(min_int)
-        worst_interval = tostring(max_int)
+        avg_interval = total / #recent_intervals
     end
 
     local indicator = "---"
-    local current_interval = persistent_stats.digs_since_skillup or 0
-    if avg_interval > 0 and current_interval > 0 then
-        if current_interval > avg_interval then
-            indicator = "\\cs(255,100,100)DUE (Above Avg)\\cr"
+    local current = persistent_stats.digs_since_skillup or 0
+
+    if avg_interval > 0 then
+        -- Dig attempts are whole numbers
+        local rounded_avg = math.floor(avg_interval + 0.5)
+        local difference = current - rounded_avg
+
+        if difference > 0 then
+            indicator = string.format("\\cs(255,100,100)Above Avg (+%d)\\cr", difference)
+        elseif difference < 0 then
+            indicator = string.format("\\cs(100,255,100)Below Avg (%d)\\cr", difference)
         else
-            indicator = "\\cs(100,255,100)Below Avg\\cr"
+            indicator = "\\cs(255,255,100)At Avg (0)\\cr"
         end
     end
 
-    return success_rate, digs_per_hour, success_per_hour, avg_interval, best_interval, worst_interval, indicator
+    return success_rate, digs_per_hour, success_per_hour, avg_interval, last_intervals, indicator
 end
 
 local function update_hud()
@@ -233,7 +239,7 @@ local function update_hud()
         return 
     end
 
-    local success_rate, digs_per_hour, success_per_hour, avg_interval, best_interval, worst_interval, indicator = get_rates()
+    local success_rate, digs_per_hour, success_per_hour, avg_interval, last_intervals, indicator = get_rates()
 
     local info = {}
     info[#info+1] = "== \\cs(0,255,255)Dig Tracker\\cr =="
@@ -251,7 +257,7 @@ local function update_hud()
     info[#info+1] = "--------------------------"
     info[#info+1] = string.format("Current Wing Skill: %s", persistent_stats.current_skill > 0 and tostring(persistent_stats.current_skill) or "Unknown")
     info[#info+1] = string.format("Digs Since Last Skill: %d", persistent_stats.digs_since_skillup or 0)
-    info[#info+1] = string.format("Avg Interval: %.1f | Best/Worst: %s/%s", avg_interval, best_interval, worst_interval)
+    info[#info+1] = string.format("Avg (last 5): %.1f | Last 3: %s/%s/%s", avg_interval, last_intervals[1], last_intervals[2], last_intervals[3])
     info[#info+1] = string.format("Status: %s", indicator)
 
     if settings.show_items then

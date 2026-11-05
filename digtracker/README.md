@@ -1,4 +1,4 @@
-# DigTracker (v3.3.1)
+# DigTracker (v3.4.0)
 
 A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, session speeds, item yields, and persistent skill-up intervals across multiple characters.
 
@@ -9,7 +9,7 @@ A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, s
 * **Multi-Character Support**: Saves historical stats per character into `data/<CharacterName>.lua`.
 * **Persistent Skill Intervals**: Tracks `Digs Since Last Skill` across logouts and sessions so you never lose your current streak.
 * **Live Speed Metrics**: Monitors total session digs, success/failure ratios, and hourly rates (`digs/hr` and `items/hr`).
-* **Interval Statistics**: Calculates your average, best, and worst dig intervals between skill-ups, with a dynamic status indicator (`DUE` / `Below Avg`).
+* **Interval Statistics**: Displays a rolling average of the last five completed skill-up intervals, the last three intervals, and the current deviation from the average.
 * **CSV Logging**: Automatically appends dig records to `logs/dig_history.csv` for detailed auditing.
 
 ## Fork Improvements
@@ -19,6 +19,7 @@ This fork extends the original DigTracker by [peterjez](https://github.com/peter
 - **Chocobo-only tracking:** Only processes dig-result messages while riding a chocobo, reducing false counts.
 - **Regional currency tracking:** Separately tracks Conquest Points, Imperial Standing, Allied Notes, and Bayld.
 - **Alphabetical loot ordering:** Consistent item ordering in the HUD and saved records.
+- **Recent skill-up statistics:** Rolling five-interval average, last three intervals in chronological order, and number of digs above or below the average.
 
 See the [Changelog](CHANGELOG.md) for the complete version history.
 
@@ -49,3 +50,8 @@ All commands can be run using //dt or //digtracker.
 ## File Structure
 **data/<CharacterName>.lua**: Persistent data store containing total digs, item counts, skill-up history, and current interval progress.<br>
 **logs/dig_history.csv**: Exported log history with timestamps, dig results, items obtained, and skill levels.
+
+## Credits
+
+- **Original author:** [peterjez](https://github.com/peterjez)
+- **Fork maintainer:** [benbou8231](https://github.com/benbou8231)
