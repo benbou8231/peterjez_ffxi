@@ -245,8 +245,7 @@ local function get_rates()
 
         -- Ignore unknown counts and the interval following a zero
         local valid = successes > 0 and previous_successes > 0
-        recent_successes[#recent_successes + 1] =
-            valid and successes or 'N/A'
+        recent_successes[#recent_successes + 1] = valid and successes or 'N/A'
 
         previous_successes = successes
     end
