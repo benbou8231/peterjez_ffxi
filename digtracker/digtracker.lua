@@ -1,6 +1,6 @@
 _addon.name     = 'DigTracker'
 _addon.author   = 'peterjez, benbou8231'
-_addon.version  = '3.4.0'
+_addon.version  = '3.5.0'
 _addon.commands = {'dt', 'digtracker'}
 
 -- Load Windower Libraries
@@ -59,6 +59,7 @@ local persistent_stats = {
     regional_currencies = {},
     current_skill = 0,
     digs_since_skillup = 0, -- Moved here to allow persistent tracking across logouts
+    successful_digs_since_skillup = 0,
     items = {},
     skillups = {}
 }
@@ -75,16 +76,25 @@ local function migrate_stats()
     end
 end
 
--- Load stats from flat file safely
-if stats_file:exists() then
-    local loaded_data = loadfile(windower.addon_path .. stats_file_path)
-    if loaded_data then
-        local success, result = pcall(loaded_data)
-        if success and type(result) == 'table' then
-            persistent_stats = result
-            migrate_stats()
+local function migrate_skillup_history()
+    local changed = false
+
+    for i, entry in ipairs(persistent_stats.skillups or {}) do
+        -- Match legacy three-field records only
+        local skill, digs, timestamp = entry:match('^(%d+)|(%d+)|(%d+)$')
+
+        if skill then
+            persistent_stats.skillups[i] = string.format('%s|%s|0|%s', skill, digs, timestamp)
+            changed = true
         end
     end
+
+    if persistent_stats.successful_digs_since_skillup == nil then
+        persistent_stats.successful_digs_since_skillup = 0
+        changed = true
+    end
+
+    return changed
 end
 
 -- Session-only tracking variables
@@ -94,7 +104,6 @@ local session = {
     successes = 0,
     fails = 0,
     regional_currencies = {},
-    last_skill_interval = 0,
     items = {}
 }
 
@@ -104,6 +113,10 @@ local hud = texts.new(settings.hud)
 -----------------------------------------------------------------------
 -- Helper Functions & Math
 -----------------------------------------------------------------------
+local SKILLUP_HISTORY_LIMIT = 5
+local SKILLUP_DISPLAY_LIMIT = 3
+local FIRST_USABLE_SKILLUP = 2
+
 -- Surgically removes FFXI auto-translate and style bytes using decimal codes
 local function clean_string(str)
     if not str then return "" end
@@ -134,6 +147,21 @@ local function sorted_item_names(items)
     return names
 end
 
+-- Return the latest values, oldest on the left
+local function get_last_values(values)
+    local display = {}
+
+    for i = 1, SKILLUP_DISPLAY_LIMIT do
+        display[i] = 'N/A'
+    end
+
+    for offset = 0, math.min(#values, SKILLUP_DISPLAY_LIMIT) - 1 do
+        display[SKILLUP_DISPLAY_LIMIT - offset] = tostring(values[#values - offset])
+    end
+
+    return display
+end
+
 -- Safely serializes our custom table into a pure, clean Lua data file
 local function save_data()
     -- Save XML Settings
@@ -147,6 +175,7 @@ local function save_data()
     output[#output+1] = string.format("    failed_digs = %d,", persistent_stats.failed_digs)
     output[#output+1] = string.format("    current_skill = %d,", persistent_stats.current_skill)
     output[#output+1] = string.format("    digs_since_skillup = %d,", persistent_stats.digs_since_skillup or 0)
+    output[#output+1] = string.format("    successful_digs_since_skillup = %d,", persistent_stats.successful_digs_since_skillup or 0)
 
     -- Write each currency in its own nested entry (and migrate old CP on save).
     output[#output+1] = "    regional_currencies = {"
@@ -188,30 +217,44 @@ local function get_rates()
     local digs_per_hour = total / hours
     local success_per_hour = session.successes / hours
 
-    -- Decode our flat string list back into math values
-    local skill_count = #persistent_stats.skillups
+    -- Keep successful digs aligned with their corresponding intervals
+    local history = persistent_stats.skillups
     local recent_intervals = {}
+    local recent_successes = {}
+    local total_digs = 0
 
-    for i = math.max(2, skill_count - 4), skill_count do
-        local parts = persistent_stats.skillups[i]:split('|')
-        recent_intervals[#recent_intervals + 1] = tonumber(parts[2]) or 0
+    local first = math.max(
+        FIRST_USABLE_SKILLUP,
+        #history - SKILLUP_HISTORY_LIMIT + 1
+    )
+
+    -- Inspect the preceding entry to detect incomplete success history
+    local previous_successes = 0
+    if first <= #history then
+        local parts = history[first - 1]:split('|')
+        previous_successes = (#parts == 4 and tonumber(parts[3])) or 0
     end
 
-    local avg_interval = 0
-    local last_intervals = {'N/A', 'N/A', 'N/A'}
+    for i = first, #history do
+        local parts = history[i]:split('|')
+        local digs = tonumber(parts[2]) or 0
+        local successes = (#parts == 4 and tonumber(parts[3])) or 0
 
-    if #recent_intervals > 0 then
-        local total = 0
-        for i, interval in ipairs(recent_intervals) do
-            total = total + interval
+        recent_intervals[#recent_intervals + 1] = digs
+        total_digs = total_digs + digs
 
-            -- Oldest on the left, newest on the right
-            if i > #recent_intervals - 3 then
-                last_intervals[i - #recent_intervals + 3] = tostring(interval)
-            end
-        end
-        avg_interval = total / #recent_intervals
+        -- Ignore unknown counts and the interval following a zero
+        local valid = successes > 0 and previous_successes > 0
+        recent_successes[#recent_successes + 1] = valid and successes or 'N/A'
+
+        previous_successes = successes
     end
+
+    local avg_interval = #recent_intervals > 0
+        and total_digs / #recent_intervals or 0
+
+    local last_intervals = get_last_values(recent_intervals)
+    local last_successes_intervals = get_last_values(recent_successes)
 
     local indicator = "---"
     local current = persistent_stats.digs_since_skillup or 0
@@ -230,7 +273,7 @@ local function get_rates()
         end
     end
 
-    return success_rate, digs_per_hour, success_per_hour, avg_interval, last_intervals, indicator
+    return success_rate, digs_per_hour, success_per_hour, avg_interval, last_intervals, last_successes_intervals, indicator
 end
 
 local function update_hud()
@@ -239,7 +282,7 @@ local function update_hud()
         return 
     end
 
-    local success_rate, digs_per_hour, success_per_hour, avg_interval, last_intervals, indicator = get_rates()
+    local success_rate, digs_per_hour, success_per_hour, avg_interval, last_intervals, last_successes_intervals, indicator = get_rates()
 
     local info = {}
     info[#info+1] = "== \\cs(0,255,255)Dig Tracker\\cr =="
@@ -256,9 +299,10 @@ local function update_hud()
 
     info[#info+1] = "--------------------------"
     info[#info+1] = string.format("Current Wing Skill: %s", persistent_stats.current_skill > 0 and tostring(persistent_stats.current_skill) or "Unknown")
-    info[#info+1] = string.format("Digs Since Last Skill: %d", persistent_stats.digs_since_skillup or 0)
-    info[#info+1] = string.format("Avg (last 5): %.1f | Last 3: %s/%s/%s", avg_interval, last_intervals[1], last_intervals[2], last_intervals[3])
+    info[#info+1] = string.format("Digs Since Last Skill: %d | Successes: %d", persistent_stats.digs_since_skillup or 0, persistent_stats.successful_digs_since_skillup or 0)
+    info[#info+1] = string.format("Avg (last %d): %.1f | Last %d: %s", SKILLUP_HISTORY_LIMIT, avg_interval, SKILLUP_DISPLAY_LIMIT, table.concat(last_intervals, '/'))
     info[#info+1] = string.format("Status: %s", indicator)
+    info[#info+1] = string.format("Last %d Successes: %s", SKILLUP_DISPLAY_LIMIT, table.concat(last_successes_intervals, '/'))
 
     if settings.show_items then
         info[#info+1] = "--------------------------"
@@ -339,6 +383,7 @@ windower.register_event('incoming text', function(original, modified, mode, rest
         session.digs = session.digs + 1
         session.successes = session.successes + 1
         persistent_stats.digs_since_skillup = (persistent_stats.digs_since_skillup or 0) + 1
+        persistent_stats.successful_digs_since_skillup = (persistent_stats.successful_digs_since_skillup or 0) + 1
 
         session.regional_currencies[currency] = (session.regional_currencies[currency] or 0) + value
         persistent_stats.regional_currencies[currency] = (persistent_stats.regional_currencies[currency] or 0) + value
@@ -374,6 +419,7 @@ windower.register_event('incoming text', function(original, modified, mode, rest
             session.digs = session.digs + 1
             session.successes = session.successes + 1
             persistent_stats.digs_since_skillup = (persistent_stats.digs_since_skillup or 0) + 1
+            persistent_stats.successful_digs_since_skillup = (persistent_stats.successful_digs_since_skillup or 0) + 1
 
             -- Track in session (displays in HUD)
             session.items[item_match] = (session.items[item_match] or 0) + 1
@@ -399,13 +445,14 @@ windower.register_event('incoming text', function(original, modified, mode, rest
     if skill then
         local skill_num = tonumber(skill)
         local current_interval = persistent_stats.digs_since_skillup or 0
+        local successful_current_interval = persistent_stats.successful_digs_since_skillup or 0
 
-        local serialized_skillup = string.format("%d|%d|%d", skill_num, current_interval, os.time())
+        local serialized_skillup = string.format("%d|%d|%d|%d", skill_num, current_interval, successful_current_interval, os.time())
         table.insert(persistent_stats.skillups, serialized_skillup)
 
         persistent_stats.current_skill = skill_num
-        session.last_skill_interval = current_interval
         persistent_stats.digs_since_skillup = 0
+        persistent_stats.successful_digs_since_skillup = 0
         save_data()
 
         windower.add_to_chat(207, string.format('[DigTracker] Registered skill up to %d after %d digs!', skill_num, current_interval))
@@ -477,7 +524,8 @@ windower.register_event('addon command', function(...)
                 items = {},
                 skillups = {},
                 current_skill = 0,
-                digs_since_skillup = 0
+                digs_since_skillup = 0,
+                successful_digs_since_skillup = 0
             }
             save_data()
         end
@@ -515,6 +563,10 @@ local function initialize_player_file()
             if success and type(result) == 'table' then
                 persistent_stats = result
                 migrate_stats()
+                local changed = migrate_skillup_history()
+                if changed then
+                    save_data()
+                end
             end
         end
     end

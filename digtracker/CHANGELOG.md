@@ -9,6 +9,23 @@ features, MAJOR for breaking changes.
 
 Original project: [peterjez/ffxi](https://github.com/peterjez/ffxi)
 
+## [3.5.0] Track successful digs per skill-up interval
+
+### Added
+
+- Track successful digs since the last skill-up across sessions.
+- Store successful-dig counts in historical skill-up records.
+- Display the last three successful-dig counts alongside recent intervals.
+
+### Changed
+
+- Migrate existing skill-up history with zero placeholders for unavailable success counts.
+- Display `N/A` for unknown or potentially incomplete success intervals.
+
+### Compatibility
+
+- Preserve existing character statistics and dig history without requiring manual migration.
+
 ## [3.4.0] Improve skill-up interval statistics
 
 ### Changed

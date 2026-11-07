@@ -1,4 +1,4 @@
-# DigTracker (v3.4.0)
+# DigTracker (v3.5.0)
 
 A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, session speeds, item yields, and persistent skill-up intervals across multiple characters.
 
@@ -7,9 +7,9 @@ A Windower 4 addon for **Final Fantasy XI** that tracks Chocobo Digging stats, s
 ## Features
 
 * **Multi-Character Support**: Saves historical stats per character into `data/<CharacterName>.lua`.
-* **Persistent Skill Intervals**: Tracks `Digs Since Last Skill` across logouts and sessions so you never lose your current streak.
+* **Persistent Skill Intervals**: Tracks total and successful digs since the last skill-up across logouts and sessions.
 * **Live Speed Metrics**: Monitors total session digs, success/failure ratios, and hourly rates (`digs/hr` and `items/hr`).
-* **Interval Statistics**: Displays a rolling average of the last five completed skill-up intervals, the last three intervals, and the current deviation from the average.
+* **Interval Statistics**: Displays a rolling average of the last five completed skill-up intervals, the last three intervals and their successful-dig counts, and the current deviation from the average.
 * **CSV Logging**: Automatically appends dig records to `logs/dig_history.csv` for detailed auditing.
 
 ## Fork Improvements
@@ -20,6 +20,7 @@ This fork extends the original DigTracker by [peterjez](https://github.com/peter
 - **Regional currency tracking:** Separately tracks Conquest Points, Imperial Standing, Allied Notes, and Bayld.
 - **Alphabetical loot ordering:** Consistent item ordering in the HUD and saved records.
 - **Recent skill-up statistics:** Rolling five-interval average, last three intervals in chronological order, and number of digs above or below the average.
+- **Skill-up success history:** Records successful digs for each skill-up interval and displays recent counts alongside existing interval statistics.
 
 See the [Changelog](CHANGELOG.md) for the complete version history.
 
@@ -48,7 +49,7 @@ All commands can be run using //dt or //digtracker.
 **//dt reset all**	      Erases both session data and lifetime character records.<br>
 
 ## File Structure
-**data/<CharacterName>.lua**: Persistent data store containing total digs, item counts, skill-up history, and current interval progress.<br>
+**data/<CharacterName>.lua**: Persistent data store containing dig totals, item counts, skill-up history (total and successful digs), and current interval progress.<br>
 **logs/dig_history.csv**: Exported log history with timestamps, dig results, items obtained, and skill levels.
 
 ## Credits
